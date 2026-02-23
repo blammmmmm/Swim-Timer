@@ -3,21 +3,16 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>LED Timer Controller</title>
+<title>Swim Timer Controller</title>
 <style>
-  :root{
-    --bg:#0b0f18; --card:#101829; --text:#e9eefc; --muted:rgba(233,238,252,.7);
-    --aqua:#48e3ff; --red:#ff1a1a; --btn:#16233a; --btn2:#1a2b48;
-  }
+  :root{--bg:#0b0f18;--card:#101829;--text:#e9eefc;--muted:rgba(233,238,252,.7);--btn:#16233a;--btn2:#1a2b48;--red:#ff1a1a;--aqua:#48e3ff;}
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto}
   .wrap{max-width:900px;margin:0 auto;padding:18px}
-  .top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;
-    padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(72,227,255,.08),rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.06)}
-  .pill{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:999px;
-    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+  .top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:14px;border-radius:14px;
+    background:linear-gradient(135deg,rgba(72,227,255,.08),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.06)}
+  .pill{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
   .label{font-size:12px;color:var(--muted);letter-spacing:.02em}
-  .value{font-weight:800}
+  .value{font-weight:900}
   .status{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
   .dot{width:8px;height:8px;border-radius:50%;background:#777}
   .dot.ok{background:#3cff8b}
@@ -26,21 +21,16 @@
   .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
   @media (min-width:820px){ .grid{grid-template-columns: 1.15fr .85fr;} }
   .panel{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px}
-  .panel h3{margin:0 0 10px 0;font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.02em}
-  .big{font-size:46px;font-weight:900;letter-spacing:-.02em;color:var(--red);text-shadow:0 0 12px rgba(255,26,26,.35);margin:6px 0 10px}
-
+  .panel h3{margin:0 0 10px 0;font-size:14px;color:var(--muted);font-weight:900;letter-spacing:.02em}
+  .big{font-size:46px;font-weight:1000;letter-spacing:-.02em;color:var(--red);text-shadow:0 0 12px rgba(255,26,26,.35);margin:6px 0 10px}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .btn{appearance:none;border:1px solid rgba(255,255,255,.08);background:var(--btn);color:var(--text);
-    padding:10px 12px;border-radius:12px;font-weight:850;cursor:pointer;user-select:none}
+  .btn{appearance:none;border:1px solid rgba(255,255,255,.08);background:var(--btn);color:var(--text);padding:10px 12px;border-radius:12px;font-weight:1000;cursor:pointer;user-select:none}
   .btn:hover{background:var(--btn2)}
   .btn.primary{background:rgba(72,227,255,.12);border-color:rgba(72,227,255,.28)}
   .btn.danger{background:rgba(255,26,26,.12);border-color:rgba(255,26,26,.28)}
   .btn.ghost{background:transparent}
-
   .inputs{display:flex;gap:10px;flex-wrap:wrap}
-  input,select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:var(--text);
-    padding:10px 12px;border-radius:12px;font-weight:800;outline:none}
-  input::placeholder{color:rgba(233,238,252,.45)}
+  input,select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:var(--text);padding:10px 12px;border-radius:12px;font-weight:900;outline:none}
   .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
   code{background:rgba(255,255,255,.05);padding:2px 6px;border-radius:8px}
 </style>
@@ -64,7 +54,6 @@
         <div class="value" id="runningLabel">—</div>
       </div>
     </div>
-
     <div class="status">
       <div class="dot" id="connDot"></div>
       <div id="connText">Connecting…</div>
@@ -95,13 +84,12 @@
       </div>
 
       <div class="hint">
-        Writes to <code>rooms/&lt;room&gt;/timer</code>. Use URL <code>?room=swim-timer</code>.
+        REST path: <code>rooms/&lt;room&gt;/timer</code>. URL param: <code>?room=swim-timer</code>
       </div>
     </div>
 
     <div class="panel">
       <h3>Settings</h3>
-
       <div class="inputs">
         <select id="modeSelect">
           <option value="down">Count Down (24:00:00 → 00:00:00)</option>
@@ -118,176 +106,152 @@
         <button class="btn" id="btnSetTime">Set Time</button>
       </div>
 
-      <div class="hint">Set Time pauses the timer and sets the display instantly.</div>
+      <div class="hint">Set Time pauses and sets the display instantly.</div>
     </div>
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-  // ===== PASTE YOUR Swim-Timer firebaseConfig HERE =====
-  const firebaseConfig = {
-    apiKey: "REPLACE_ME",
-    authDomain: "REPLACE_ME",
-    databaseURL: "https://swim-timer-fafd3-default-rtdb.firebaseio.com",
-    projectId: "REPLACE_ME",
-    storageBucket: "REPLACE_ME",
-    messagingSenderId: "REPLACE_ME",
-    appId: "REPLACE_ME"
-  };
-  // ================================================
+  // ✅ ONLY THING THAT MUST BE RIGHT:
+  const DB = "https://swim-timer-fafd3-default-rtdb.firebaseio.com";
 
-  const TOTAL_SECONDS = 24 * 60 * 60;
+  const TOTAL = 24*60*60;
 
   const params = new URLSearchParams(location.search);
   const room = String(params.get("room") || "swim-timer").replace(/[.#$\[\]\/]/g, "-");
-  document.getElementById("roomLabel").textContent = room;
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  // Connection indicator
+  const roomLabel = document.getElementById("roomLabel");
+  const modeLabel = document.getElementById("modeLabel");
+  const runningLabel = document.getElementById("runningLabel");
+  const modeSelect = document.getElementById("modeSelect");
+  const displayEl = document.getElementById("display");
   const connDot = document.getElementById("connDot");
   const connText = document.getElementById("connText");
-  db.ref(".info/connected").on("value", (snap)=>{
-    const ok = !!snap.val();
-    connDot.className = "dot " + (ok ? "ok" : "bad");
-    connText.textContent = ok ? "Connected" : "Disconnected";
-  });
 
-  const timerRef = db.ref("rooms/" + room + "/timer");
+  roomLabel.textContent = room;
+
+  const timerUrl = () => `${DB}/rooms/${encodeURIComponent(room)}/timer.json`;
 
   function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
   function fmt(secs){
-    secs = Math.floor(secs);
-    secs = clamp(secs, 0, TOTAL_SECONDS);
+    secs = clamp(Math.floor(secs), 0, TOTAL);
     const h = Math.floor(secs/3600);
     const m = Math.floor((secs%3600)/60);
     const s = secs%60;
     return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
   }
 
-  // State format:
-  // { mode:"down|up", running:boolean, baseSeconds:number, startAt:number(ms) }
-  let lastState = null;
+  let state = null;
 
-  function computeCurrentSeconds(state){
-    if(!state) return TOTAL_SECONDS;
-    const mode = (state.mode === "up") ? "up" : "down";
-    const running = !!state.running;
-    let base = Number.isFinite(state.baseSeconds) ? state.baseSeconds : (mode==="up"?0:TOTAL_SECONDS);
-    base = clamp(base, 0, TOTAL_SECONDS);
-
+  function computeCurrent(st){
+    if(!st) return TOTAL;
+    const mode = (st.mode==="up") ? "up" : "down";
+    const running = !!st.running;
+    let base = Number.isFinite(st.baseSeconds) ? st.baseSeconds : (mode==="up" ? 0 : TOTAL);
+    base = clamp(base, 0, TOTAL);
     if(!running) return base;
-
-    const startAt = Number(state.startAt || 0);
+    const startAt = Number(st.startAt || 0);
     if(!startAt) return base;
-
-    const elapsed = Math.max(0, Math.floor((Date.now() - startAt) / 1000));
-    return (mode==="up") ? clamp(base + elapsed, 0, TOTAL_SECONDS) : clamp(base - elapsed, 0, TOTAL_SECONDS);
+    const elapsed = Math.max(0, Math.floor((Date.now() - startAt)/1000));
+    return (mode==="up") ? clamp(base + elapsed, 0, TOTAL) : clamp(base - elapsed, 0, TOTAL);
   }
 
-  function setDisplayFromState(){
-    const secs = computeCurrentSeconds(lastState);
-    document.getElementById("display").textContent = fmt(secs);
-    document.getElementById("modeLabel").textContent = (lastState?.mode || "down").toUpperCase();
-    document.getElementById("runningLabel").textContent = (lastState?.running ? "YES" : "NO");
-    document.getElementById("modeSelect").value = (lastState?.mode === "up") ? "up" : "down";
+  function render(){
+    const mode = (state?.mode==="up") ? "up" : "down";
+    const running = !!state?.running;
+    modeLabel.textContent = mode.toUpperCase();
+    runningLabel.textContent = running ? "YES" : "NO";
+    modeSelect.value = mode;
+    displayEl.textContent = fmt(computeCurrent(state));
   }
 
-  timerRef.on("value",(snap)=>{
-    lastState = snap.val() || null;
-    setDisplayFromState();
-  });
-
-  // keep ticking while running
-  setInterval(()=>{
-    if(lastState?.running) setDisplayFromState();
-  }, 250);
-
-  async function ensureInit(){
-    const snap = await timerRef.once("value");
-    if(!snap.exists()){
-      await timerRef.set({
-        mode: "down",
-        running: false,
-        baseSeconds: TOTAL_SECONDS,
-        startAt: 0,
-        updatedAt: Date.now()
-      });
-      lastState = (await timerRef.once("value")).val();
+  async function fetchState(){
+    try{
+      const res = await fetch(timerUrl(), {cache:"no-store"});
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const json = await res.json();
+      state = json;
+      connDot.className = "dot ok";
+      connText.textContent = "Connected";
+      render();
+    }catch(e){
+      connDot.className = "dot bad";
+      connText.textContent = "Disconnected";
     }
   }
 
-  async function setState(patch){
-    await timerRef.update({ ...patch, updatedAt: Date.now() });
+  async function patch(patchObj){
+    await fetch(timerUrl(), {
+      method:"PATCH",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(patchObj)
+    });
+    await fetchState();
+  }
+
+  async function ensureInit(){
+    await fetchState();
+    if(!state){
+      state = { mode:"down", running:false, baseSeconds:TOTAL, startAt:0, updatedAt:Date.now() };
+      await fetch(timerUrl(), {
+        method:"PUT",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(state)
+      });
+      await fetchState();
+    }
   }
 
   async function start(){
     await ensureInit();
-    if(lastState?.running) return;
-
-    const mode = (lastState?.mode === "up") ? "up" : "down";
-    const base = computeCurrentSeconds({ ...lastState, running:false, startAt:0 });
-
-    await setState({
-      mode,
-      running: true,
-      baseSeconds: base,
-      startAt: Date.now()
-    });
+    if(state?.running) return;
+    const mode = (state?.mode==="up") ? "up" : "down";
+    const base = computeCurrent({ ...state, running:false, startAt:0 });
+    await patch({ mode, running:true, baseSeconds:base, startAt:Date.now(), updatedAt:Date.now() });
   }
 
   async function pause(){
     await ensureInit();
-    if(!lastState?.running) return;
-
-    const current = computeCurrentSeconds(lastState);
-    await setState({ running:false, baseSeconds: current, startAt:0 });
+    if(!state?.running) return;
+    const current = computeCurrent(state);
+    await patch({ running:false, baseSeconds:current, startAt:0, updatedAt:Date.now() });
   }
 
   async function reset24h(){
     await ensureInit();
-    const mode = (lastState?.mode === "up") ? "up" : "down";
-    const base = (mode==="up") ? 0 : TOTAL_SECONDS;
-    await setState({ mode, running:false, baseSeconds: base, startAt:0 });
+    const mode = (state?.mode==="up") ? "up" : "down";
+    const base = (mode==="up") ? 0 : TOTAL;
+    await patch({ mode, running:false, baseSeconds:base, startAt:0, updatedAt:Date.now() });
   }
 
   async function setZero(){
     await ensureInit();
-    const mode = (lastState?.mode === "up") ? "up" : "down";
-    await setState({ mode, running:false, baseSeconds: 0, startAt:0 });
+    const mode = (state?.mode==="up") ? "up" : "down";
+    await patch({ mode, running:false, baseSeconds:0, startAt:0, updatedAt:Date.now() });
   }
 
   async function addSeconds(delta){
     await ensureInit();
-    const current = computeCurrentSeconds(lastState);
-    const next = clamp(current + delta, 0, TOTAL_SECONDS);
-    await setState({ running:false, baseSeconds: next, startAt:0 });
+    const current = computeCurrent(state);
+    const next = clamp(current + delta, 0, TOTAL);
+    await patch({ running:false, baseSeconds:next, startAt:0, updatedAt:Date.now() });
   }
 
   async function setMode(newMode){
     await ensureInit();
-    newMode = (newMode === "up") ? "up" : "down";
-    const oldMode = (lastState?.mode === "up") ? "up" : "down";
-    const displayed = computeCurrentSeconds(lastState);
+    newMode = (newMode==="up") ? "up" : "down";
+    const oldMode = (state?.mode==="up") ? "up" : "down";
+    const displayed = computeCurrent(state);
 
-    // Convert so the *displayed time* stays the same after switching
+    // keep the displayed time consistent through switch
     let baseSeconds;
     if(newMode === oldMode){
       baseSeconds = displayed;
-    } else if(newMode === "up"){
-      // displayed was remaining (down), convert to elapsed
-      baseSeconds = TOTAL_SECONDS - displayed;
     } else {
-      // displayed was elapsed (up), convert to remaining
-      baseSeconds = TOTAL_SECONDS - displayed;
+      baseSeconds = TOTAL - displayed;
     }
-    baseSeconds = clamp(baseSeconds, 0, TOTAL_SECONDS);
-
-    await setState({ mode:newMode, running:false, baseSeconds, startAt:0 });
+    baseSeconds = clamp(baseSeconds, 0, TOTAL);
+    await patch({ mode:newMode, running:false, baseSeconds, startAt:0, updatedAt:Date.now() });
   }
 
   async function setExact(){
@@ -295,8 +259,8 @@
     const hh = clamp(parseInt(document.getElementById("setHH").value||"0",10),0,24);
     const mm = clamp(parseInt(document.getElementById("setMM").value||"0",10),0,59);
     const ss = clamp(parseInt(document.getElementById("setSS").value||"0",10),0,59);
-    const total = clamp(hh*3600 + mm*60 + ss, 0, TOTAL_SECONDS);
-    await setState({ running:false, baseSeconds: total, startAt:0 });
+    const total = clamp(hh*3600 + mm*60 + ss, 0, TOTAL);
+    await patch({ running:false, baseSeconds:total, startAt:0, updatedAt:Date.now() });
   }
 
   document.getElementById("btnStart").addEventListener("click", start);
@@ -304,8 +268,13 @@
   document.getElementById("btnReset").addEventListener("click", reset24h);
   document.getElementById("btnZero").addEventListener("click", setZero);
   document.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>addSeconds(parseInt(b.dataset.add,10))));
-  document.getElementById("modeSelect").addEventListener("change", (e)=>setMode(e.target.value));
+  modeSelect.addEventListener("change", e=>setMode(e.target.value));
   document.getElementById("btnSetTime").addEventListener("click", setExact);
+
+  // initial + keep display alive
+  fetchState();
+  setInterval(()=>{ if(state?.running){ render(); } }, 250);
+  setInterval(fetchState, 1500); // keep in sync across devices
 </script>
 </body>
 </html>
