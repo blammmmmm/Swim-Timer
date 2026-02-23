@@ -3,226 +3,218 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>LED Timer Controller</title>
+<title>LED Timer Overlay</title>
 <style>
-  :root{
-    --bg:#0b0f18;
-    --card:#101829;
-    --text:#e9eefc;
-    --muted:rgba(233,238,252,.7);
-    --aqua:#48e3ff;
-    --red:#ff1a1a;
-    --btn:#16233a;
-    --btn2:#1a2b48;
-  }
-  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto; }
-  .wrap{max-width:860px;margin:0 auto;padding:18px;}
-  .top{
-    display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;
-    padding:14px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(72,227,255,.08),rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.06);
-  }
-  .pill{
-    display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-    padding:10px 12px;border-radius:999px;background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.06);
-  }
-  .label{font-size:12px;color:var(--muted);letter-spacing:.02em}
-  .value{font-weight:700}
-  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px;}
-  @media (min-width:820px){ .grid{grid-template-columns: 1.15fr .85fr;} }
+  html,body{margin:0;background:transparent;overflow:hidden}
 
-  .panel{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px;}
-  .panel h3{margin:0 0 10px 0;font-size:14px;color:var(--muted);font-weight:650;letter-spacing:.02em}
-  .big{
-    font-size:46px;font-weight:850;letter-spacing:-.02em;
-    color:var(--red);text-shadow:0 0 12px rgba(255,26,26,.35);
-    margin:6px 0 10px 0;
+  /* Position */
+  .stage{
+    position:fixed; inset:0;
+    display:flex;
+    justify-content:flex-end;
+    align-items:flex-end;
+    padding:80px;
+    pointer-events:none;
   }
 
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .btn{
-    appearance:none;border:1px solid rgba(255,255,255,.08);
-    background:var(--btn);color:var(--text);
-    padding:10px 12px;border-radius:12px;font-weight:750;
-    cursor:pointer; user-select:none;
+  /* LED board */
+  .board{
+    background:#111;
+    padding:20px 28px;
+    border-radius:12px;
+    box-shadow:
+      inset 0 0 25px rgba(0,0,0,.9),
+      0 20px 60px rgba(0,0,0,.6);
   }
-  .btn:hover{background:var(--btn2)}
-  .btn.primary{background:rgba(72,227,255,.12);border-color:rgba(72,227,255,.28)}
-  .btn.danger{background:rgba(255,26,26,.12);border-color:rgba(255,26,26,.28)}
-  .btn.ghost{background:transparent}
 
-  .inputs{display:flex;gap:10px;flex-wrap:wrap}
-  input,select{
-    background:rgba(255,255,255,.05);
-    border:1px solid rgba(255,255,255,.09);
-    color:var(--text);
-    padding:10px 12px;border-radius:12px;
-    font-weight:700;
-    outline:none;
+  .display{display:flex;gap:14px;align-items:center}
+
+  .digit{
+    position:relative;
+    width:70px;
+    height:120px;
   }
-  input::placeholder{color:rgba(233,238,252,.45)}
-  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
-  .status{
-    display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);
+
+  .segment{
+    position:absolute;
+    background:#300;
+    border-radius:6px;
+    transition:background .08s linear, box-shadow .08s linear;
   }
-  .dot{width:8px;height:8px;border-radius:50%;background:#777}
-  .dot.ok{background:#3cff8b}
-  .dot.bad{background:#ff4b4b}
-  code{background:rgba(255,255,255,.05);padding:2px 6px;border-radius:8px}
+  .on{
+    background:#ff1a1a;
+    box-shadow:0 0 12px #ff1a1a, 0 0 25px #ff0000;
+  }
+
+  /* segment positions */
+  .segA{top:0; left:12px; width:46px; height:10px;}
+  .segB{top:10px; right:0; width:10px; height:46px;}
+  .segC{bottom:10px; right:0; width:10px; height:46px;}
+  .segD{bottom:0; left:12px; width:46px; height:10px;}
+  .segE{bottom:10px; left:0; width:10px; height:46px;}
+  .segF{top:10px; left:0; width:10px; height:46px;}
+  .segG{top:55px; left:12px; width:46px; height:10px;}
+
+  .colon{
+    width:20px;
+    height:120px;
+    position:relative;
+  }
+  .dot{
+    position:absolute;
+    left:4px;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:#300;
+  }
+  .dot.on{
+    background:#ff1a1a;
+    box-shadow:0 0 12px #ff0000;
+  }
+  .dot.top{top:35px}
+  .dot.bottom{bottom:35px}
+
+  /* Tiny optional label (off by default) */
+  .meta{
+    margin-top:10px;
+    font:600 12px/1 system-ui,-apple-system,Segoe UI,Roboto;
+    color:rgba(255,255,255,0.55);
+    display:none;
+  }
 </style>
 </head>
+
 <body>
-<div class="wrap">
-  <div class="top">
-    <div class="pill">
-      <div>
-        <div class="label">Room</div>
-        <div class="value" id="roomLabel">—</div>
-      </div>
-      <div style="width:1px;height:26px;background:rgba(255,255,255,.08)"></div>
-      <div>
-        <div class="label">Mode</div>
-        <div class="value" id="modeLabel">—</div>
-      </div>
-      <div style="width:1px;height:26px;background:rgba(255,255,255,.08)"></div>
-      <div>
-        <div class="label">Running</div>
-        <div class="value" id="runningLabel">—</div>
-      </div>
-    </div>
-
-    <div class="status">
-      <div class="dot" id="connDot"></div>
-      <div id="connText">Connecting…</div>
+  <div class="stage">
+    <div class="board">
+      <div class="display" id="display"></div>
+      <div class="meta" id="meta"></div>
     </div>
   </div>
-
-  <div class="grid">
-    <div class="panel">
-      <h3>Timer</h3>
-      <div class="big" id="display">00:00:00</div>
-
-      <div class="row">
-        <button class="btn primary" id="btnStart">Start</button>
-        <button class="btn" id="btnPause">Pause</button>
-        <button class="btn danger" id="btnReset">Reset (24h)</button>
-        <button class="btn ghost" id="btnZero">Set 00:00:00</button>
-      </div>
-
-      <div style="height:12px"></div>
-
-      <div class="row">
-        <button class="btn" data-add="-300">-5m</button>
-        <button class="btn" data-add="-60">-1m</button>
-        <button class="btn" data-add="-10">-10s</button>
-        <button class="btn" data-add="10">+10s</button>
-        <button class="btn" data-add="60">+1m</button>
-        <button class="btn" data-add="300">+5m</button>
-      </div>
-
-      <div class="hint">
-        This controller writes to Firebase at <code>rooms/&lt;room&gt;/timer</code>.<br>
-        Use URL: <code>?room=brad-timer</code> (dots get auto-replaced so Firebase keys don’t break).
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>Settings</h3>
-
-      <div class="inputs">
-        <select id="modeSelect">
-          <option value="down">Count Down (24:00:00 → 00:00:00)</option>
-          <option value="up">Count Up (00:00:00 → 24:00:00)</option>
-        </select>
-      </div>
-
-      <div style="height:10px"></div>
-
-      <div class="inputs">
-        <input id="setHH" type="number" min="0" max="24" placeholder="HH" style="width:90px">
-        <input id="setMM" type="number" min="0" max="59" placeholder="MM" style="width:90px">
-        <input id="setSS" type="number" min="0" max="59" placeholder="SS" style="width:90px">
-        <button class="btn" id="btnSetTime">Set Time</button>
-      </div>
-
-      <div class="hint">
-        Set Time changes the “current displayed time” instantly and pauses the timer (so you can set cleanly).
-      </div>
-    </div>
-  </div>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-  // ===== Firebase config (your project) =====
+  // ===== Firebase config (Swim Timer project) =====
   const firebaseConfig = {
-    apiKey: "AIzaSyDsF66JMfz1AXcmzEgXgOMWP4XyMDv1IEc",
-    authDomain: "swim-timer-fafd3.firebaseapp.com",
+    apiKey: "AIzaSyD3YIe1lBy625FN_ujSnwGJXSvDUGbDYfU",
+    authDomain: "brad-swim-overlay.firebaseapp.com",
     databaseURL: "https://swim-timer-fafd3-default-rtdb.firebaseio.com",
     projectId: "swim-timer-fafd3",
-    storageBucket: "swim-timer-fafd3.firebasestorage.app",
-    messagingSenderId: "178207366979",
-    appId: "1:178207366979:web:b894b8b0a1aeae13c0d9f6"
+    storageBucket: "swim-timer-fafd3.appspot.com",
+    messagingSenderId: "438110148127",
+    appId: "1:438110148127:web:2bcbb03875e68304c0a72a"
   };
-  // =========================================
+  // NOTE: If your Swim-Timer project has different keys than this,
+  // paste the exact config from that project's Web App settings.
+  // ===============================================
 
   const TOTAL_SECONDS = 24 * 60 * 60;
 
   function sanitizeRoom(s){
     // RTDB keys cannot contain . # $ [ ] /
-    return String(s || "brad-timer").replace(/[.#$\[\]\/]/g, "-");
+    return String(s || "swim-timer").replace(/[.#$\[\]\/]/g, "-");
   }
 
-  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+  function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
 
-  function fmt(secs){
+  function fmtHMS(secs){
     secs = Math.floor(secs);
     secs = clamp(secs, 0, TOTAL_SECONDS);
     const h = Math.floor(secs/3600);
     const m = Math.floor((secs%3600)/60);
     const s = secs%60;
-    return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+    return String(h).padStart(2,"0")+String(m).padStart(2,"0")+String(s).padStart(2,"0");
   }
 
-  // Parse URL
-  const params = new URLSearchParams(location.search);
-  const room = sanitizeRoom(params.get("room") || "brad-timer");
+  // 7-seg mapping
+  const digitMap = {
+    "0":["A","B","C","D","E","F"],
+    "1":["B","C"],
+    "2":["A","B","G","E","D"],
+    "3":["A","B","G","C","D"],
+    "4":["F","G","B","C"],
+    "5":["A","F","G","C","D"],
+    "6":["A","F","E","D","C","G"],
+    "7":["A","B","C"],
+    "8":["A","B","C","D","E","F","G"],
+    "9":["A","B","C","D","F","G"]
+  };
 
-  document.getElementById("roomLabel").textContent = room;
+  function createDigit(){
+    const d = document.createElement("div");
+    d.className = "digit";
+    ["A","B","C","D","E","F","G"].forEach(s=>{
+      const seg = document.createElement("div");
+      seg.className = "segment seg"+s;
+      seg.dataset.seg = s;
+      d.appendChild(seg);
+    });
+    return d;
+  }
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  function createColon(){
+    const c = document.createElement("div");
+    c.className = "colon";
+    const t = document.createElement("div");
+    t.className = "dot top";
+    const b = document.createElement("div");
+    b.className = "dot bottom";
+    c.appendChild(t); c.appendChild(b);
+    return c;
+  }
 
-  const connDot = document.getElementById("connDot");
-  const connText = document.getElementById("connText");
+  function setDigit(el, numChar){
+    el.querySelectorAll(".segment").forEach(s=>s.classList.remove("on"));
+    const onList = digitMap[numChar] || [];
+    onList.forEach(seg=>{
+      const node = el.querySelector(`[data-seg="${seg}"]`);
+      if(node) node.classList.add("on");
+    });
+  }
 
-  // connection indicator
-  db.ref(".info/connected").on("value", (snap)=>{
-    const ok = !!snap.val();
-    connDot.className = "dot " + (ok ? "ok" : "bad");
-    connText.textContent = ok ? "Connected" : "Disconnected";
-  });
+  // Build HH:MM:SS display (6 digits + 2 colons)
+  const display = document.getElementById("display");
+  const parts = [];
+  for(let i=0;i<8;i++){
+    if(i===2 || i===5){
+      const col = createColon();
+      display.appendChild(col);
+      parts.push(col);
+    }else{
+      const d = createDigit();
+      display.appendChild(d);
+      parts.push(d);
+    }
+  }
 
-  const timerRef = db.ref("rooms/" + room + "/timer");
+  function renderSeconds(secs){
+    const str = fmtHMS(secs); // "HHMMSS"
+    let idx = 0;
+    for(const el of parts){
+      if(el.classList.contains("digit")){
+        setDigit(el, str[idx]);
+        idx++;
+      }else{
+        el.querySelectorAll(".dot").forEach(d=>d.classList.add("on"));
+      }
+    }
+  }
 
-  // Timer state model:
-  // mode: "down"|"up"
-  // running: boolean
-  // baseSeconds: number (meaning "current displayed seconds at startAt")
-  // startAt: server timestamp ms when last started (only valid if running)
-  //
-  // For mode=down: baseSeconds is remaining seconds at startAt.
-  // For mode=up:   baseSeconds is elapsed seconds at startAt.
+  // ===== Firebase state -> current seconds =====
+  // State written by controller at rooms/<room>/timer:
+  // { mode, running, baseSeconds, startAt }
+  let lastState = null;
 
-  function serverNowMs(){ return Date.now(); } // overlay/controller uses local now; startAt is server time
+  function nowMs(){ return Date.now(); }
 
   function computeCurrentSeconds(state){
-    if(!state) return (state?.mode === "up") ? 0 : TOTAL_SECONDS;
-
-    const mode = state.mode || "down";
+    if(!state){
+      return TOTAL_SECONDS; // default visual
+    }
+    const mode = (state.mode === "up") ? "up" : "down";
     const running = !!state.running;
     let base = Number.isFinite(state.baseSeconds) ? state.baseSeconds : (mode==="up" ? 0 : TOTAL_SECONDS);
     base = clamp(base, 0, TOTAL_SECONDS);
@@ -232,203 +224,34 @@
     const startAt = Number(state.startAt || 0);
     if(!startAt) return base;
 
-    const elapsed = Math.max(0, Math.floor((serverNowMs() - startAt) / 1000));
+    const elapsed = Math.max(0, Math.floor((nowMs() - startAt) / 1000));
 
-    if(mode === "up"){
-      return clamp(base + elapsed, 0, TOTAL_SECONDS);
-    }else{
-      return clamp(base - elapsed, 0, TOTAL_SECONDS);
-    }
+    if(mode === "up") return clamp(base + elapsed, 0, TOTAL_SECONDS);
+    return clamp(base - elapsed, 0, TOTAL_SECONDS);
   }
 
-  // Live UI
-  let lastState = null;
-  const displayEl = document.getElementById("display");
-  const modeLabel = document.getElementById("modeLabel");
-  const runningLabel = document.getElementById("runningLabel");
-  const modeSelect = document.getElementById("modeSelect");
+  // URL room
+  const params = new URLSearchParams(location.search);
+  const room = sanitizeRoom(params.get("room") || "swim-timer");
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const timerRef = db.ref("rooms/" + room + "/timer");
 
   timerRef.on("value", (snap)=>{
     lastState = snap.val() || null;
-
-    const mode = (lastState?.mode || "down");
-    const running = !!(lastState?.running);
-
-    modeLabel.textContent = mode.toUpperCase();
-    runningLabel.textContent = running ? "YES" : "NO";
-    modeSelect.value = mode;
-
-    const current = computeCurrentSeconds(lastState);
-    displayEl.textContent = fmt(current);
+    renderSeconds(computeCurrentSeconds(lastState));
   });
 
-  // Also refresh display every 250ms while running, so it looks responsive
+  // tick locally so it animates between Firebase writes
   setInterval(()=>{
     if(!lastState) return;
-    const current = computeCurrentSeconds(lastState);
-    displayEl.textContent = fmt(current);
-  }, 250);
+    renderSeconds(computeCurrentSeconds(lastState));
+  }, 200);
 
-  // Writes
-  async function setState(patch){
-    await timerRef.update({
-      ...patch,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP
-    });
-  }
-
-  async function ensureInit(){
-    const snap = await timerRef.get();
-    if(!snap.exists()){
-      await timerRef.set({
-        mode: "down",
-        running: false,
-        baseSeconds: TOTAL_SECONDS,
-        startAt: 0,
-        updatedAt: firebase.database.ServerValue.TIMESTAMP
-      });
-    }
-  }
-
-  async function start(){
-    await ensureInit();
-    const mode = (lastState?.mode || modeSelect.value || "down");
-    const running = !!lastState?.running;
-
-    if(running) return;
-
-    const base = computeCurrentSeconds({...lastState, running:false}); // current displayed while paused
-    await setState({
-      mode,
-      running: true,
-      baseSeconds: base,
-      startAt: firebase.database.ServerValue.TIMESTAMP
-    });
-  }
-
-  async function pause(){
-    await ensureInit();
-    const running = !!lastState?.running;
-    if(!running) return;
-
-    const current = computeCurrentSeconds(lastState);
-    await setState({
-      running: false,
-      baseSeconds: current,
-      startAt: 0
-    });
-  }
-
-  async function reset24h(){
-    await ensureInit();
-    const mode = (lastState?.mode || modeSelect.value || "down");
-    const base = (mode === "up") ? 0 : TOTAL_SECONDS;
-
-    await setState({
-      mode,
-      running: false,
-      baseSeconds: base,
-      startAt: 0
-    });
-  }
-
-  async function setZero(){
-    await ensureInit();
-    const mode = (lastState?.mode || modeSelect.value || "down");
-    await setState({
-      mode,
-      running: false,
-      baseSeconds: 0,
-      startAt: 0
-    });
-  }
-
-  async function addSeconds(delta){
-    await ensureInit();
-    const current = computeCurrentSeconds(lastState);
-    const next = clamp(current + delta, 0, TOTAL_SECONDS);
-    await setState({
-      running: false,
-      baseSeconds: next,
-      startAt: 0
-    });
-  }
-
-  async function setMode(newMode){
-    await ensureInit();
-    newMode = (newMode === "up") ? "up" : "down";
-
-    // Keep the *displayed* time consistent when switching modes:
-    // If switching from down->up, convert remaining to elapsed.
-    // If switching from up->down, convert elapsed to remaining.
-    const current = computeCurrentSeconds(lastState);
-    const nextBase = (newMode === "up") ? (TOTAL_SECONDS - current) : current;
-
-    // Explanation:
-    // current is displayed seconds under old mode.
-    // For up mode, displayed = elapsed. If current is "remaining" from down mode,
-    // elapsed = TOTAL - remaining.
-    // For down mode, displayed = remaining. If current is elapsed from up mode,
-    // remaining = TOTAL - elapsed.
-    const normalized = clamp(
-      (newMode === "up") ? (TOTAL_SECONDS - current) : (TOTAL_SECONDS - current), // wait, simplify below
-      0, TOTAL_SECONDS
-    );
-
-    // Let's do it correctly:
-    let baseSeconds;
-    if(newMode === "up"){
-      // displayed should become elapsed
-      // If we were down: current was remaining -> elapsed = TOTAL - remaining
-      // If we were up: current already elapsed
-      const oldMode = (lastState?.mode || "down");
-      baseSeconds = (oldMode === "up") ? current : (TOTAL_SECONDS - current);
-    }else{
-      // displayed should become remaining
-      // If we were up: current was elapsed -> remaining = TOTAL - elapsed
-      // If we were down: current already remaining
-      const oldMode = (lastState?.mode || "down");
-      baseSeconds = (oldMode === "down") ? current : (TOTAL_SECONDS - current);
-    }
-
-    baseSeconds = clamp(baseSeconds, 0, TOTAL_SECONDS);
-
-    await setState({
-      mode: newMode,
-      running: false,
-      baseSeconds,
-      startAt: 0
-    });
-  }
-
-  // Wire buttons
-  document.getElementById("btnStart").addEventListener("click", start);
-  document.getElementById("btnPause").addEventListener("click", pause);
-  document.getElementById("btnReset").addEventListener("click", reset24h);
-  document.getElementById("btnZero").addEventListener("click", setZero);
-
-  document.querySelectorAll("[data-add]").forEach(btn=>{
-    btn.addEventListener("click", ()=> addSeconds(parseInt(btn.dataset.add,10)));
-  });
-
-  modeSelect.addEventListener("change", ()=> setMode(modeSelect.value));
-
-  document.getElementById("btnSetTime").addEventListener("click", async ()=>{
-    await ensureInit();
-    const hh = clamp(parseInt(document.getElementById("setHH").value || "0",10), 0, 24);
-    const mm = clamp(parseInt(document.getElementById("setMM").value || "0",10), 0, 59);
-    const ss = clamp(parseInt(document.getElementById("setSS").value || "0",10), 0, 59);
-
-    let total = hh*3600 + mm*60 + ss;
-    total = clamp(total, 0, TOTAL_SECONDS);
-
-    await setState({
-      running:false,
-      baseSeconds: total,
-      startAt: 0
-    });
-  });
-
+  // initial
+  renderSeconds(TOTAL_SECONDS);
 </script>
 </body>
 </html>
