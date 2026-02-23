@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>24h LED Timer</title>
+<style>
+body{
+  margin:0;
+  background:transparent;
+  overflow:hidden;
+}
+
+.board{
+  position:fixed;
+  bottom:80px;
+  right:80px;
+  background:#111;
+  padding:20px 28px;
+  border-radius:12px;
+  box-shadow:
+    inset 0 0 25px rgba(0,0,0,.9),
+    0 20px 60px rgba(0,0,0,.6);
+}
+
+.display{
+  display:flex;
+  gap:14px;
+}
+
+.digit{
+  position:relative;
+  width:70px;
+  height:120px;
+}
+
+.segment{
+  position:absolute;
+  background:#300;
+  border-radius:6px;
+  transition:background .1s;
+}
+
+.on{
+  background:#ff1a1a;
+  box-shadow:
+    0 0 12px #ff1a1a,
+    0 0 25px #ff0000;
+}
+
+/* Segment positions */
+.segA{top:0; left:12px; width:46px; height:10px;}
+.segB{top:10px; right:0; width:10px; height:46px;}
+.segC{bottom:10px; right:0; width:10px; height:46px;}
+.segD{bottom:0; left:12px; width:46px; height:10px;}
+.segE{bottom:10px; left:0; width:10px; height:46px;}
+.segF{top:10px; left:0; width:10px; height:46px;}
+.segG{top:55px; left:12px; width:46px; height:10px;}
+
+.colon{
+  width:20px;
+  height:120px;
+  position:relative;
+}
+
+.dot{
+  position:absolute;
+  left:4px;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#300;
+}
+
+.dot.on{
+  background:#ff1a1a;
+  box-shadow:0 0 12px #ff0000;
+}
+
+.dot.top{ top:35px;}
+.dot.bottom{ bottom:35px;}
+</style>
+</head>
+
+<body>
+<div class="board">
+  <div class="display" id="display"></div>
+</div>
+
+<script>
+const COUNT_MODE = "down"; // "down" or "up"
+const TOTAL_SECONDS = 24 * 60 * 60;
+
+const digitMap = {
+  "0":["A","B","C","D","E","F"],
+  "1":["B","C"],
+  "2":["A","B","G","E","D"],
+  "3":["A","B","G","C","D"],
+  "4":["F","G","B","C"],
+  "5":["A","F","G","C","D"],
+  "6":["A","F","E","D","C","G"],
+  "7":["A","B","C"],
+  "8":["A","B","C","D","E","F","G"],
+  "9":["A","B","C","D","F","G"]
+};
+
+function createDigit(){
+  const d = document.createElement("div");
+  d.className="digit";
+  ["A","B","C","D","E","F","G"].forEach(s=>{
+    const seg=document.createElement("div");
+    seg.className="segment seg"+s;
+    seg.dataset.seg=s;
+    d.appendChild(seg);
+  });
+  return d;
+}
+
+function createColon(){
+  const c=document.createElement("div");
+  c.className="colon";
+  const t=document.createElement("div");
+  t.className="dot top";
+  const b=document.createElement("div");
+  b.className="dot bottom";
+  c.appendChild(t);
+  c.appendChild(b);
+  return c;
+}
+
+const display=document.getElementById("display");
+const parts=[];
+for(let i=0;i<8;i++){
+  if(i===2||i===5){
+    const col=createColon();
+    display.appendChild(col);
+    parts.push(col);
+  }else{
+    const d=createDigit();
+    display.appendChild(d);
+    parts.push(d);
+  }
+}
+
+function setDigit(el, num){
+  el.querySelectorAll(".segment").forEach(s=>s.classList.remove("on"));
+  digitMap[num].forEach(seg=>{
+    el.querySelector(`[data-seg=${seg}]`).classList.add("on");
+  });
+}
+
+function setTime(total){
+  total=Math.max(0, total);
+  const h=Math.floor(total/3600);
+  const m=Math.floor((total%3600)/60);
+  const s=total%60;
+
+  const str=
+    String(h).padStart(2,"0")+
+    String(m).padStart(2,"0")+
+    String(s).padStart(2,"0");
+
+  let idx=0;
+  for(let i=0;i<parts.length;i++){
+    if(parts[i].classList.contains("digit")){
+      setDigit(parts[i], str[idx]);
+      idx++;
+    }else{
+      parts[i].querySelectorAll(".dot").forEach(d=>d.classList.add("on"));
+    }
+  }
+}
+
+let seconds = COUNT_MODE==="down" ? TOTAL_SECONDS : 0;
+
+setInterval(()=>{
+  if(COUNT_MODE==="down"){
+    if(seconds>0) seconds--;
+  }else{
+    if(seconds<TOTAL_SECONDS) seconds++;
+  }
+  setTime(seconds);
+},1000);
+
+setTime(seconds);
+</script>
+</body>
+</html>
